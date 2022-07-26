@@ -1,4 +1,8 @@
+'use strict';
+
+const Path = require('path');
 const Hapi = require('@hapi/hapi');
+const Hoek = require('@hapi/hoek');
 
 // Add this below the @hapi/hapi require statement
 const Joi = require('@hapi/joi');
@@ -20,6 +24,30 @@ const init = async () => {
               useUnifiedTopology: true
           },
           decorate: true
+        }
+    });
+
+    await server.register(require('@hapi/vision'));
+
+    server.views({
+        engines: {
+            html: {
+                module: require('handlebars'),
+                compileMode: 'sync' // engine specific
+            }
+        },
+        compileMode: 'async', // global setting
+        relativeTo: __dirname,
+        path: './templates',
+        layoutPath: './templates/layout',
+        helpersPath: './templates/helpers'
+    });
+
+    server.route({
+        method: 'GET',
+        path: '/viewPage',
+        handler: (req, h) => {
+            return h.view('index');
         }
     });
 
