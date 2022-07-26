@@ -3,6 +3,7 @@
 const Path = require('path');
 const Hapi = require('@hapi/hapi');
 const Hoek = require('@hapi/hoek');
+const Ejs = require('ejs');
 
 // Add this below the @hapi/hapi require statement
 const Joi = require('@hapi/joi');
@@ -29,26 +30,45 @@ const init = async () => {
 
     await server.register(require('@hapi/vision'));
 
+    // html integration
+    // server.views({
+    //     engines: {
+    //         html: {
+    //             module: require('handlebars'),
+    //             compileMode: 'sync' // engine specific
+    //         }
+    //     },
+    //     compileMode: 'async', // global setting
+    //     relativeTo: __dirname,
+    //     path: './templates',
+    //     layoutPath: './templates/layout',
+    //     helpersPath: './templates/helpers'
+    // });
+
+    // ejs integration
     server.views({
-        engines: {
-            html: {
-                module: require('handlebars'),
-                compileMode: 'sync' // engine specific
-            }
-        },
-        compileMode: 'async', // global setting
+        engines: { ejs: Ejs },
         relativeTo: __dirname,
-        path: './templates',
-        layoutPath: './templates/layout',
-        helpersPath: './templates/helpers'
+        path: './ejs/templates'
     });
 
+    // html view
     server.route({
         method: 'GET',
         path: '/viewPage',
         handler: (req, h) => {
             return h.view('index');
         }
+    });
+
+    // ejs view
+    server.route({ 
+        method: 'GET', 
+        path: '/viewEjsPage', 
+        handler: async (req, h) => {
+            const movie = await req.mongo.db.collection('movies').findOne({});
+            return h.view('indexEjs', {movie});
+        } 
     });
 
     // Get all movies
@@ -68,7 +88,7 @@ const init = async () => {
         path: '/movies',
         handler: async (req, h) => {
 
-        const movie = await req.mongo.db.collection('movies').findOne({})
+        const movie = await req.mongo.db.collection('movies').findOne({});
 
         return movie;
         }
